@@ -3,6 +3,7 @@ from PIL import Image, ImageEnhance, ImageFilter, ImageDraw
 import cv2
 import numpy as np
 import io
+from io import BytesIO
 
 # --- Funciones de Utilería ---
 
@@ -128,7 +129,7 @@ def rotador_fotos(img, grados):
 def main():
     st.title("Aplicación de Edición de Imágenes")
 
-    uploaded_file = st.file_uploader("Carga una imagen", type=["jpg", "jpeg", "png"])
+    uploaded_file = st.file_uploader("Carga una imagen", type=["jpg", "jpeg", "png", "webp"])
 
     if uploaded_file is not None:
         try:
@@ -213,20 +214,32 @@ def main():
                 grados = st.slider("Grados de Rotación", -180, 180, 0)
                 modified_image = rotador_fotos(image, grados)
 
-
             if modified_image:
                 st.image(modified_image, caption="Imagen modificada", use_container_width=True)
                 
-                # -- Descarga de la imagen --
+                # --- Descarga de la imagen ---
+                # Optimizar la imagen antes de la descarga
+                optimized_download_image = optimizar_imagen(modified_image.copy())
+                
+                
                 image_bytes = io.BytesIO()
-                modified_image.save(image_bytes, format="PNG")
-                image_bytes.seek(0)  # Reset buffer
+                try:
+                  optimized_download_image.save(image_bytes, format="webp", lossless=True, quality=80)
+                  mime="image/webp"
+                  file_name="modified_image.webp"
+                except:
+                   optimized_download_image.save(image_bytes, format="PNG")
+                   mime="image/png"
+                   file_name="modified_image.png"
+
+                
+                image_bytes.seek(0)
                 
                 st.download_button(
                     label="Descargar imagen",
                     data=image_bytes,
-                    file_name="modified_image.png",
-                    mime="image/png"
+                    file_name=file_name,
+                    mime=mime
                 )
         except Exception as e:
              st.error(f"Ocurrió un error: {e}")
