@@ -4,33 +4,39 @@ import cv2
 import numpy as np
 import io
 
-# Función para convertir imágenes PIL a OpenCV
+# --- Funciones de Utilería ---
+
+def optimizar_imagen(img, max_size=(800, 800)):
+    """Optimiza el tamaño de una imagen para reducir su peso."""
+    img.thumbnail(max_size)
+    return img
+
 def pil_to_cv2(img):
+    """Convierte una imagen PIL a formato OpenCV."""
     return np.array(img)
 
 def cv2_to_pil(img):
+    """Convierte una imagen OpenCV a formato PIL."""
     return Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
 
 # --- Funciones de Herramientas ---
 def oscurecer_imagen(img, factor):
+    """Oscurece una imagen."""
     enhancer = ImageEnhance.Brightness(img)
     return enhancer.enhance(factor)
 
-def borrador_sombras(img, umbral = 100):
+def borrador_sombras(img, umbral=100):
+    """Aclara sombras en la imagen."""
     img_cv = pil_to_cv2(img)
     lab = cv2.cvtColor(img_cv, cv2.COLOR_BGR2LAB)
     l_channel = lab[:,:,0]
-    
-    # Aumentar el canal L (luminosidad) en las zonas oscuras
     l_channel[l_channel < umbral] = l_channel[l_channel < umbral] + (umbral - l_channel[l_channel < umbral])
-    
-    # Convertir de nuevo a BGR
     img_cv_modified = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
     return cv2_to_pil(img_cv_modified)
 
-
 def borrador_fondos(img):
-    # Convertir a formato OpenCV
+    """Elimina el fondo de una imagen."""
+     # Convertir a formato OpenCV
     img_cv = pil_to_cv2(img)
 
     # Convertir a espacio de color HSV
@@ -61,58 +67,61 @@ def borrador_fondos(img):
             newData.append(item)
 
     objeto_pil.putdata(newData)
-
-
     return objeto_pil
 
 def ampliador_imagenes(img, factor):
+    """Amplía una imagen."""
     nuevo_tamano = (int(img.width * factor), int(img.height * factor))
     return img.resize(nuevo_tamano, Image.LANCZOS)
 
 def herramienta_oscurecimiento(img, factor):
-    enhancer = ImageEnhance.Brightness(img)
-    return enhancer.enhance(factor)
+    """Oscurece una imagen (alias para oscurecer_imagen)."""
+    return oscurecer_imagen(img, factor)
 
 def inversor_fotos(img):
+    """Invierte los colores de una imagen."""
     return Image.eval(img, lambda i: 255 - i)
 
 def herramienta_desenfoque(img, radio):
+    """Aplica un desenfoque a la imagen."""
     return img.filter(ImageFilter.GaussianBlur(radio))
 
 def herramienta_recorte_redondo(img):
-     # Crear una máscara circular
+    """Recorta una imagen a una forma redonda."""
     mask = Image.new('L', img.size, 0)
     draw = ImageDraw.Draw(mask)
     draw.ellipse((0, 0, img.size[0], img.size[1]), fill=255)
-
-    # Aplicar la máscara
     img.putalpha(mask)
     return img
 
 def recortar_foto(img, x1, y1, x2, y2):
+    """Recorta una imagen según coordenadas."""
     return img.crop((x1, y1, x2, y2))
 
 def herramienta_cuentagotas(img, x, y):
+    """Obtiene el color de un píxel."""
     return img.getpixel((x, y))
 
 def editor_bn(img):
+    """Convierte una imagen a blanco y negro."""
     return img.convert('L')
 
 def herramienta_invertir(img):
-    return Image.eval(img, lambda i: 255 - i)
+    """Invierte los colores de una imagen (alias para inversor_fotos)."""
+    return inversor_fotos(img)
 
 def iluminador_fotos(img, factor):
+    """Ilumina una imagen."""
     enhancer = ImageEnhance.Brightness(img)
     return enhancer.enhance(factor)
 
 def herramienta_colorear(img, color):
-     # Crear una imagen del mismo tamaño con el color elegido
+    """Colorea una imagen."""
     color_img = Image.new("RGB", img.size, color)
-
-    # Combina la imagen original y la imagen de color
     return Image.blend(img.convert('RGB'), color_img, 0.5)
 
 def rotador_fotos(img, grados):
+    """Rota una imagen."""
     return img.rotate(grados, expand=True)
 
 # --- Interfaz Streamlit ---
@@ -124,6 +133,10 @@ def main():
     if uploaded_file is not None:
         try:
             image = Image.open(uploaded_file)
+            
+            # Optimizar la imagen al cargarla
+            image = optimizar_imagen(image)
+
             st.image(image, caption="Imagen original", use_container_width=True)
 
             tool = st.selectbox("Selecciona una herramienta", [
