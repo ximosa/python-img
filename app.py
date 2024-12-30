@@ -124,7 +124,7 @@ def main():
     if uploaded_file is not None:
         try:
             image = Image.open(uploaded_file)
-            st.image(image, caption="Imagen original", use_column_width=True)
+            st.image(image, caption="Imagen original", use_container_width=True)
 
             tool = st.selectbox("Selecciona una herramienta", [
                 "Oscurecer Imagen", "Borrador de Sombras", "Borrador de Fondos",
@@ -202,7 +202,7 @@ def main():
 
 
             if modified_image:
-                st.image(modified_image, caption="Imagen modificada", use_column_width=True)
+                st.image(modified_image, caption="Imagen modificada", use_container_width=True)
                 
                 # -- Descarga de la imagen --
                 image_bytes = io.BytesIO()
