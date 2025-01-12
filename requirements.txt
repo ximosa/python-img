@@ -1,8 +1,2 @@
 streamlit
-Pillow
 opencv-python==4.8.1.78
-opencv-contrib-python
-numpy
-setuptools
-wheel
-cmake
