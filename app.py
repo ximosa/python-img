@@ -1,5 +1,5 @@
 import streamlit as st
-from PIL import Image, ImageEnhance, ImageFilter, ImageDraw
+from PIL import Image, ImageEnhance, ImageFilter, ImageDraw, ImageFont
 import cv2
 import numpy as np
 import io
@@ -125,6 +125,31 @@ def rotador_fotos(img, grados):
     """Rota una imagen."""
     return img.rotate(grados, expand=True)
 
+# Nueva función para agregar texto
+def agregar_texto_a_imagen(img, texto, posicion, tamaño, color):
+    """Agrega texto a una imagen."""
+    draw = ImageDraw.Draw(img)
+    font = ImageFont.truetype("arial.ttf", size=tamaño) # Usamos un tipo de fuente comun
+    
+    # Calcula la posición del texto
+    text_width, text_height = draw.textsize(texto, font=font)
+    
+    if posicion == "arriba":
+        x = (img.width - text_width) / 2
+        y = 10
+    elif posicion == "centro":
+        x = (img.width - text_width) / 2
+        y = (img.height - text_height) / 2
+    elif posicion == "abajo":
+         x = (img.width - text_width) / 2
+         y = img.height - text_height - 10 # Añadimos un pequeño margen inferior
+    else:  # Coordenadas personalizadas
+         x,y = map(int, posicion.split(','))
+
+    draw.text((x, y), texto, fill=color, font=font)
+    return img
+
+
 # --- Interfaz Streamlit ---
 def main():
     st.title("Aplicación de Edición de Imágenes")
@@ -147,7 +172,7 @@ def main():
                 "Herramienta de Recorte Redondo", "Recortador de Fotos", 
                 "Herramienta Cuentagotas de Color", "Editor de Fotos en Blanco y Negro",
                 "Herramienta para Invertir Fotos", "Iluminador de Fotos",
-                "Herramienta para Colorear Fotos", "Rotador de Fotos"
+                "Herramienta para Colorear Fotos", "Rotador de Fotos", "Agregar Texto"
             ])
 
             modified_image = None
@@ -213,6 +238,16 @@ def main():
             elif tool == "Rotador de Fotos":
                 grados = st.slider("Grados de Rotación", -180, 180, 0)
                 modified_image = rotador_fotos(image, grados)
+
+            elif tool == "Agregar Texto":
+                texto = st.text_input("Texto a agregar", "Tu Título Aquí")
+                posicion = st.selectbox("Posición del texto", ["arriba", "centro", "abajo", "personalizada(x,y)"])
+                if posicion == "personalizada(x,y)":
+                    posicion = st.text_input("Coordenada X,Y (Ejemplo 10,50)", "10,10")
+                tamaño = st.slider("Tamaño del texto", 10, 100, 30)
+                color = st.color_picker("Color del texto", "#FFFFFF")  # Color por defecto: blanco
+                modified_image = agregar_texto_a_imagen(image.copy(), texto, posicion, tamaño, color)
+                
 
             if modified_image:
                 st.image(modified_image, caption="Imagen modificada", use_container_width=True)
