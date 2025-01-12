@@ -1,11 +1,9 @@
 import streamlit as st
-from PIL import Image, ImageEnhance, ImageFilter
+from PIL import Image, ImageEnhance, ImageFilter, ImageDraw
 import cv2
 import numpy as np
 import io
 from io import BytesIO
-import pkg_resources
-import os
 
 # --- Funciones de Utilería ---
 
@@ -127,43 +125,6 @@ def rotador_fotos(img, grados):
     """Rota una imagen."""
     return img.rotate(grados, expand=True)
 
-
-# Nueva función para agregar texto usando OpenCV
-def agregar_texto_a_imagen(img, texto, posicion, tamaño, color):
-   """Agrega texto a una imagen utilizando OpenCV."""
-   img_cv = pil_to_cv2(img)
-
-   # Convierte el color RGB de PIL a BGR de OpenCV
-   color_bgr = (color[2], color[1], color[0])
-
-   # Define el tipo de fuente
-   font = cv2.FONT_HERSHEY_SIMPLEX
-
-   # Escala del texto
-   scale = tamaño / 30.0
-   
-   #Calcula el tamaño del texto
-   text_size = cv2.getTextSize(texto, font, scale, 1)[0]
-
-   # Calcula la posición del texto
-   if posicion == "arriba":
-      x = int((img.width - text_size[0]) / 2)
-      y = 30 # Margen superior
-   elif posicion == "centro":
-       x = int((img.width - text_size[0]) / 2)
-       y = int((img.height + text_size[1]) / 2)
-   elif posicion == "abajo":
-      x = int((img.width - text_size[0]) / 2)
-      y = int(img.height - 20) #Margen Inferior
-   else:  # Coordenadas personalizadas
-      x, y = map(int, posicion.split(','))
-      x = int(x)
-      y = int(y)
-    
-   # Agrega el texto a la imagen
-   cv2.putText(img_cv, texto, (x, y), font, scale, color_bgr, 1, cv2.LINE_AA)
-   return cv2_to_pil(img_cv)
-
 # --- Interfaz Streamlit ---
 def main():
     st.title("Aplicación de Edición de Imágenes")
@@ -186,7 +147,7 @@ def main():
                 "Herramienta de Recorte Redondo", "Recortador de Fotos", 
                 "Herramienta Cuentagotas de Color", "Editor de Fotos en Blanco y Negro",
                 "Herramienta para Invertir Fotos", "Iluminador de Fotos",
-                "Herramienta para Colorear Fotos", "Rotador de Fotos", "Agregar Texto"
+                "Herramienta para Colorear Fotos", "Rotador de Fotos"
             ])
 
             modified_image = None
@@ -252,16 +213,6 @@ def main():
             elif tool == "Rotador de Fotos":
                 grados = st.slider("Grados de Rotación", -180, 180, 0)
                 modified_image = rotador_fotos(image, grados)
-
-            elif tool == "Agregar Texto":
-                texto = st.text_input("Texto a agregar", "Tu Título Aquí")
-                posicion = st.selectbox("Posición del texto", ["arriba", "centro", "abajo", "personalizada(x,y)"])
-                if posicion == "personalizada(x,y)":
-                    posicion = st.text_input("Coordenada X,Y (Ejemplo 10,50)", "10,10")
-                tamaño = st.slider("Tamaño del texto", 10, 100, 30)
-                color = st.color_picker("Color del texto", "#FFFFFF")  # Color por defecto: blanco
-                modified_image = agregar_texto_a_imagen(image.copy(), texto, posicion, tamaño, color)
-                
 
             if modified_image:
                 st.image(modified_image, caption="Imagen modificada", use_container_width=True)
