@@ -4,6 +4,8 @@ import cv2
 import numpy as np
 import io
 from io import BytesIO
+import pkg_resources
+import os
 
 # --- Funciones de Utilería ---
 
@@ -129,7 +131,20 @@ def rotador_fotos(img, grados):
 def agregar_texto_a_imagen(img, texto, posicion, tamaño, color):
     """Agrega texto a una imagen."""
     draw = ImageDraw.Draw(img)
-    font = ImageFont.truetype("arial.ttf", size=tamaño) # Usamos un tipo de fuente comun
+    
+    # Buscar la fuente Arial en los recursos del paquete
+    font_path = pkg_resources.resource_filename(__name__, "arial.ttf")
+    if not os.path.exists(font_path):
+      font_path = "arial.ttf" # Si no se encuentra, intentamos localizarla en el sistema
+      if not os.path.exists(font_path):
+          st.error("Error: No se encontró el archivo de fuente 'arial.ttf'. Asegúrate de que esté instalado en tu sistema o dentro del directorio de este script.")
+          return img #Retornamos la imagen sin modificaciones
+    
+    try:
+        font = ImageFont.truetype(font_path, size=tamaño)
+    except Exception as e:
+        st.error(f"Error al cargar la fuente: {e}. Asegúrate de que la fuente esté instalada en tu sistema y la ruta sea correcta.")
+        return img #Retornamos la imagen sin modificaciones
     
     # Calcula la posición del texto
     text_width, text_height = draw.textsize(texto, font=font)
