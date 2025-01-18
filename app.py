@@ -8,8 +8,6 @@ st.set_page_config(
     page_title="oscurecer",
     layout="wide"
 )
-
-st.title("oscurecer")
 # --- Funciones de Utilería ---
 
 def optimizar_imagen(img, max_size=(800, 800)):
